@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UsersSchema = exports.connectDB = void 0;
+exports.AccountSchema = exports.UsersSchema = exports.connectDB = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const { Schema } = mongoose_1.default;
@@ -69,20 +69,17 @@ const usersSchema = new Schema({
     }
 });
 const transferSchema = new Schema({
-    senderId: {
-        type: mongoose_1.default.Schema.ObjectId,
-        ref: "User",
-        required: true
-    },
     receiverId: {
         type: mongoose_1.default.Schema.ObjectId,
         ref: "User",
-        required: true
+    },
+    bankName: {
+        type: String,
+        ref: "User",
     },
     userId: {
         type: mongoose_1.default.Schema.ObjectId,
         ref: "User",
-        required: true
     },
     amount: {
         type: Number,
@@ -90,4 +87,4 @@ const transferSchema = new Schema({
     }
 });
 exports.UsersSchema = mongoose_1.default.model('User', usersSchema);
-const AccountSchema = mongoose_1.default.model('Account', transferSchema);
+exports.AccountSchema = mongoose_1.default.model('Account', transferSchema);

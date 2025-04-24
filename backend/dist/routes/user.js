@@ -17,13 +17,15 @@ const express_1 = __importDefault(require("express"));
 const db_1 = require("../db");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 require("dotenv/config");
-const zod_1 = __importDefault(require("zod"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const user_1 = require("../Middlewares/user");
-exports.userRouter = (0, express_1.default)();
+const validation_1 = require("../Middlewares/validation");
+const zod_1 = __importDefault(require("zod"));
+exports.userRouter = express_1.default.Router();
+//@ts-ignore
 exports.userRouter.post('/signup', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const inputValidation = zod_1.default.object({
+        const userInputSchema = zod_1.default.object({
             userName: zod_1.default.string().min(3, "Username should be at least 3 characters long"),
             email: zod_1.default.string().email("Invalid email"),
             password: zod_1.default
@@ -38,24 +40,22 @@ exports.userRouter.post('/signup', (req, res) => __awaiter(void 0, void 0, void 
             lastName: zod_1.default.string().min(1),
             bankName: zod_1.default.string().min(1),
         });
-        const parseData = inputValidation.safeParse(req.body);
-        if (!parseData.success) {
-            res.json({
-                message: "incorrect format",
-                //@ts-ignore
-                error: parseData.error
+        const parsed = userInputSchema.safeParse(req.body);
+        if (!parsed.success) {
+            //@ts-ignore
+            return res.status(400).json({
+                message: "Invalid input format",
+                errors: parsed.error.issues
             });
-            return;
         }
         const { userName, firstName, lastName, email, password, bankName } = req.body;
-        const hashedPassword = yield bcrypt_1.default.hash(password, 6);
         const randomBalance = Math.floor(Math.random() * 10000) + 1;
         const newUser = yield db_1.UsersSchema.create({
             userName: userName,
             firstName: firstName,
             lastName: lastName,
             email: email,
-            password: hashedPassword,
+            password: password,
             bankName: bankName,
             balance: randomBalance
         });
@@ -78,8 +78,9 @@ exports.userRouter.post('/signin', (req, res) => __awaiter(void 0, void 0, void 
         const foundUser = yield db_1.UsersSchema.findOne({
             userName: userName,
             email: email,
+            password: password
         });
-        if (foundUser && (yield bcrypt_1.default.compare(password, foundUser.password))) {
+        if (foundUser) {
             const token = jsonwebtoken_1.default.sign({
                 id: foundUser._id,
                 //@ts-ignore
@@ -105,6 +106,17 @@ exports.userRouter.put('/update-profile', user_1.userMiddleWare, (req, res) => _
     //@ts-ignore
     const userId = req.userId;
     try {
+        const parsed = validation_1.userInputSchema.safeParse(req.body);
+        if (!parsed.success) {
+            //@ts-ignore
+            return res.status(400).json({
+                message: "Invalid input format",
+                errors: parsed.error.issues
+            });
+        }
+        if (req.body.password) {
+            req.body.password = yield bcrypt_1.default.hash(req.body.password, 6);
+        }
         const updatedUser = yield db_1.UsersSchema.findByIdAndUpdate(userId, req.body, {
             new: true
         });
@@ -118,6 +130,18 @@ exports.userRouter.put('/update-profile', user_1.userMiddleWare, (req, res) => _
         res.status(500).json({ message: "Internal server error" });
     }
 }));
-exports.userRouter.delete('/profile', (req, res) => {
-    res.json('working');
-});
+//@ts-ignore
+exports.userRouter.delete('/profile', user_1.userMiddleWare, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        //@ts-ignore
+        const userId = req.userId;
+        const deleteUser = yield db_1.UsersSchema.findByIdAndDelete(userId, req.body);
+        res.json({
+            message: "User deleted",
+            deleteUser
+        });
+    }
+    catch (e) {
+        console.log(e);
+    }
+}));

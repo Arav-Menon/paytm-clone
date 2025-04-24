@@ -59,22 +59,17 @@ const usersSchema = new Schema({
 
 const transferSchema = new Schema({
 
-    senderId: {
-        type: mongoose.Schema.ObjectId,
-        ref: "User",
-        required: true
-    },
-
     receiverId: {
         type: mongoose.Schema.ObjectId,
         ref: "User",
-        required: true
     },
-
+    bankName : {
+        type : String,
+        ref : "User",
+    },
     userId: {
         type: mongoose.Schema.ObjectId,
         ref: "User",
-        required: true
     },
     amount: {
         type: Number,
@@ -83,5 +78,5 @@ const transferSchema = new Schema({
 })
 
 export const UsersSchema = mongoose.model('User', usersSchema)
-const AccountSchema = mongoose.model('Account', transferSchema)
+export const AccountSchema = mongoose.model('Account', transferSchema)
 

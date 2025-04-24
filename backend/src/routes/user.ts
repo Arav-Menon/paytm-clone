@@ -4,29 +4,43 @@ import jwt from 'jsonwebtoken'
 import "dotenv/config"
 import bcrypt from 'bcrypt'
 import { userMiddleWare } from '../Middlewares/user';
-import { inputValidation } from '../Middlewares/validation';
+import { userInputSchema } from '../Middlewares/validation';
+import z from 'zod'
 
-export const userRouter: Router = express();
+export const userRouter = express.Router();
 
 //@ts-ignore
-userRouter.post('/signup', inputValidation, async (req, res) => {
-
-    const parseData = inputValidation.safeParse(req.body);
-
-    if (!parseData.success) {
-        res.json({
-            message: "incorrect format",
-            //@ts-ignore
-            error: parseData.error
-        })
-        return;
-    }
+userRouter.post('/signup', async (req, res) => {
 
     try {
 
-        const { userName, firstName, lastName, email, password, bankName } = req.body;
+        const userInputSchema = z.object({
+            userName: z.string().min(3, "Username should be at least 3 characters long"),
+            email: z.string().email("Invalid email"),
+            password: z
+                .string()
+                .min(8, "Password must be at least 8 characters long")
+                .max(30, "Password too long")
+                .regex(/[A-Z]/, "Must include at least one uppercase letter")
+                .regex(/[a-z]/, "Must include at least one lowercase letter")
+                .regex(/[0-9]/, "Must include at least one number")
+                .regex(/[@$!%*?&]/, "Must include at least one special character"),
+            firstName: z.string().min(1),
+            lastName: z.string().min(1),
+            bankName: z.string().min(1),
+        })
 
-        const hashedPassword = await bcrypt.hash(password, 6);
+
+        const parsed = userInputSchema.safeParse(req.body);
+        if (!parsed.success) {
+            //@ts-ignore
+            return res.status(400).json({
+                message: "Invalid input format",
+                errors: parsed.error.issues
+            });
+        }
+
+        const { userName, firstName, lastName, email, password, bankName } = req.body;
 
         const randomBalance = Math.floor(Math.random() * 10000) + 1;
 
@@ -35,7 +49,7 @@ userRouter.post('/signup', inputValidation, async (req, res) => {
             firstName: firstName,
             lastName: lastName,
             email: email,
-            password: hashedPassword,
+            password: password,
             bankName: bankName,
             balance: randomBalance
         })
@@ -62,9 +76,10 @@ userRouter.post('/signin', async (req, res) => {
         const foundUser = await UsersSchema.findOne({
             userName: userName,
             email: email,
+            password: password
         })
 
-        if (foundUser && await bcrypt.compare(password, foundUser.password as string)) {
+        if (foundUser) {
             const token = jwt.sign({
                 id: foundUser._id,
                 //@ts-ignore
@@ -88,22 +103,21 @@ userRouter.post('/signin', async (req, res) => {
 
 
 //@ts-ignore
-userRouter.put('/update-profile', userMiddleWare, inputValidation, async (req, res) => {
+userRouter.put('/update-profile', userMiddleWare, async (req, res) => {
 
     //@ts-ignore
     const userId = req.userId;
 
     try {
 
-        const parseData = inputValidation.safeParse(req.body);
 
-        if (!parseData.success) {
-            res.json({
-                message: "incorrect format",
-                //@ts-ignore
-                error: parseData.error
-            })
-            return;
+        const parsed = userInputSchema.safeParse(req.body);
+        if (!parsed.success) {
+            //@ts-ignore
+            return res.status(400).json({
+                message: "Invalid input format",
+                errors: parsed.error.issues
+            });
         }
 
         if (req.body.password) {
