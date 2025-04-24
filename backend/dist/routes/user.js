@@ -131,7 +131,7 @@ exports.userRouter.put('/update-profile', user_1.userMiddleWare, (req, res) => _
     }
 }));
 //@ts-ignore
-exports.userRouter.delete('/profile', user_1.userMiddleWare, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.userRouter.delete('/profile-delete', user_1.userMiddleWare, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         //@ts-ignore
         const userId = req.userId;
@@ -139,6 +139,22 @@ exports.userRouter.delete('/profile', user_1.userMiddleWare, (req, res) => __awa
         res.json({
             message: "User deleted",
             deleteUser
+        });
+    }
+    catch (e) {
+        console.log(e);
+    }
+}));
+//@ts-ignore
+exports.userRouter.get('/profile', user_1.userMiddleWare, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        //@ts-ignore
+        const userId = req.userId;
+        const getUser = yield db_1.UsersSchema.findById(userId).select('-password');
+        //@ts-ignore
+        res.json({
+            message: "your profile",
+            getUser
         });
     }
     catch (e) {

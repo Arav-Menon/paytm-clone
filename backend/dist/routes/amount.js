@@ -61,7 +61,3 @@ exports.amountRouter.get("/transactions", (req, res) => {
     //to get history of payments
     res.json('working');
 });
-exports.amountRouter.get('/balance', (req, res) => {
-    //to check blance
-    res.json('working');
-});

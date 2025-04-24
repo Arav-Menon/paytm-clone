@@ -67,8 +67,3 @@ amountRouter.get("/transactions", (req, res) => {
     res.json('working');
 })
 
-amountRouter.get('/balance', (req, res) => {
-    //to check blance
-    
-    res.json('working');
-})

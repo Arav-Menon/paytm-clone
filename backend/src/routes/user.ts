@@ -140,7 +140,7 @@ userRouter.put('/update-profile', userMiddleWare, async (req, res) => {
 });
 
 //@ts-ignore
-userRouter.delete('/profile', userMiddleWare, async (req, res) => {
+userRouter.delete('/profile-delete', userMiddleWare, async (req, res) => {
 
     try {
         //@ts-ignore
@@ -156,3 +156,25 @@ userRouter.delete('/profile', userMiddleWare, async (req, res) => {
         console.log(e)
     }
 })
+
+//@ts-ignore
+userRouter.get('/profile', userMiddleWare, async (req : Request , res : Response) => {
+
+  try {
+
+      //@ts-ignore
+      const userId = req.userId
+
+      const getUser = await UsersSchema.findById(userId).select('-password');
+  
+      //@ts-ignore
+      res.json({
+          message : "your profile",
+          getUser
+      })
+
+  }catch(e) {
+    console.log(e)
+  }
+
+} )
