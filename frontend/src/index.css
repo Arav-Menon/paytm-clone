@@ -1,1 +1,10 @@
 @import "tailwindcss";
+html, body {
+    background-color: #09090b;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+::selection {
+    background-color: rgba(118, 118, 118, 0.64);
+    color : black
+}

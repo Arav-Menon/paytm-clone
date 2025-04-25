@@ -2,7 +2,7 @@ function App() {
 
   return (
     <>
-    <h1 className="text-red-900" >Payvibe</h1>     
+    <h1 className="text-white text-3xl">PayBy</h1>   
     </>
   )
 }
